@@ -1,0 +1,6 @@
+
+<launch>
+  <node pkg="class" type="sound_play_publish.py" name="sound_play_publish"  output="screen"/>
+  <node pkg="class" type="sound_play_say.py" name="sound_play_say"  output="screen"/>
+  <node name="soundplay_node" pkg="sound_play" type="soundplay_node.py" output="screen"/>
+</launch>
