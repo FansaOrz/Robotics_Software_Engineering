@@ -1,0 +1,10 @@
+
+<launch>
+  <node pkg="class" type="take_pic.py" name="take_pic"  output="screen"/>
+  <include file="$(find class)/launch/navigation.launch"/>
+
+
+
+  <node pkg="sound_play" type="soundplay_node.py" name="soundplay"  output="screen"/>
+
+</launch>
