@@ -5,16 +5,18 @@ import time
 from itchat.content import *
 import os, sys
 from std_msgs.msg import String
-import  thread
-import gender_predict
-
-
+import thread
+import rospy
+from std_msgs.msg import String
 
 rec_tmp_dir = os.path.join(os.getcwd(), 'tmp/')
 
 rec_msg_dict = {}
 
-
+rospy.init_node('message_pub', anonymous=True)
+control_command_pub = rospy.Publisher("/control_command", String, queue_size=10)
+wechat2total_pub = rospy.Publisher("/wechat2total", String, queue_size=10)
+rate = rospy.Rate(10)
 
 @itchat.msg_register([TEXT, PICTURE, RECORDING, ATTACHMENT, VIDEO], isFriendChat=True)
 def handle_friend_msg(msg):
@@ -27,44 +29,27 @@ def handle_friend_msg(msg):
     msg_type = msg['Type']
 
     if msg['Type'] == 'Text':
-        message=open("weichat_message.txt","w")
-        msg_content = str(msg['Content'])
-        message.write(msg_content)
-        message.close()
+        control_command_pub.publish("get wechat")
+        wechat2total_pub.publish(str(msg['Content']))
     elif msg['Type'] == 'Picture' \
             or msg['Type'] == 'Recording' \
             or msg['Type'] == 'Video' \
             or msg['Type'] == 'Attachment':
         msg_content = r"" + msg['FileName']
         msg['Text'](rec_tmp_dir + msg['FileName'])
-    rec_msg_dict.update({
-        msg_id: {
-            'msg_from_user': msg_from_user,
-            'msg_time_rec': msg_time_rec,
-            'msg_create_time': msg_create_time,
-            'msg_type': msg_type,
-            'msg_content': msg_content
+    rec_msg_dict.update(
+        {
+            msg_id: {
+                'msg_from_user': msg_from_user,
+                'msg_time_rec': msg_time_rec,
+                'msg_create_time': msg_create_time,
+                'msg_type': msg_type,
+                'msg_content': msg_content
+            }
         }
-    })
+    )
     print(msg)
 
-def pub_message(msg):
-    while not os.path.exists("./capture.jpg"):
-        tem=0
-    message = gender_predict.gender("./capture.jpg")
-    name = itchat.search_friends(name=u'胡子琦')
-    jack = name[0]["UserName"]
-
-    message_list = [u'Hey,dude', u'Are you ok?', u'Bye~']
-    itchat.send(message, jack)
-
-    picture = "./capture.jpg"
-    itchat.send_image(picture, jack)
-        
-        
-
-
-    
 
 if __name__ == '__main__':
     if not os.path.exists(rec_tmp_dir):
@@ -73,32 +58,6 @@ if __name__ == '__main__':
     friends_list = itchat.get_friends(update=True)
     arg=tuple([1])
     thread.start_new_thread(pub_message,arg)
-
     itchat.run()
-
-
-
-
-# @itchat.msg_register(itchat.content.TEXT)
-# def reply_msg(msg):
-#     print("recive a message: ",msg.text)
-#     print>>message,(msg.text)
-
-# if __name__=='__main__':
-#     itchat.auto_login()
-#     time.sleep(5)
-#     itchat.send("send the message",toUserName="filehelper")
-#     itchat.run()
-
-# principal=1000
-# rate=0.05
-# numyears=5
-# year=1
-# f=open("out.txt","w") 
-# while year<=numyears:
-#     principal=principal*(1+rate)
-#     print>>f,"%3d %0.2f"%(year,principal)
-#     year+=1
-# f.close()
 
 
